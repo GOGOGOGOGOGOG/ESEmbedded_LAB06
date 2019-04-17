@@ -45,18 +45,28 @@ void reset_handler(void)
  * 
  * set sysclk pll (168 MHz)
  * 
+ * 1. Turn on the HSE clock.
+ * 2. Wait until the HSE clock is stable.
+ * 3. Configure the main PLL parameters:
+ * 4. Selection of the HSI or HSE oscillator as PLL clock source
+ * 5. Configuration of division factors M, N, P
+ * 6. Turn on the main PLL
+ * 7. Wait until the main PLL is ready
+ * 8. Enable flash memory prefetch and set the latency
+ * 9. Select the main PLL as system clock source
+ * 10. Wait until the main PLL is used as system clock source
  */
 void set_sysclk_pll(void)
 {
 	//enable HSE
-	????????
+	SET_BIT(RCC_BASE + RCC_CR_OFFSET, HSEON_BIT);
 
 	//wait
 	while (READ_BIT(RCC_BASE + RCC_CR_OFFSET, HSERDY_BIT) != 1)
 		;
 
 	//set pll
-	???????? //use HSE for PLL source
+	SET_BIT(RCC_BASE + RCC_PLLCFGR_OFFSET, PLLSRC_BIT); //use HSE for PLL source
 
 	//f_HSE = 8 MHz
 	//
@@ -65,29 +75,36 @@ void set_sysclk_pll(void)
 	//
 	//f_VCO = 8 * 168 / 4 = 168 * 2
 	//
-	//P = 2
-	//
+	//P = 2 
+	//f_HSE * N / M = 168*2
+	//168*2 / P = f_PLL_OUT
 	//f_PLL_out = 168
 	//
 	WRITE_BITS(RCC_BASE + RCC_PLLCFGR_OFFSET, PLLP_1_BIT, PLLP_0_BIT, 0b00);
 	WRITE_BITS(RCC_BASE + RCC_PLLCFGR_OFFSET, PLLN_8_BIT, PLLN_0_BIT, 168);
-	????????
+	WRITE_BITS(RCC_BASE + RCC_PLLCFGR_OFFSET, PLLM_5_BIT, PLLM_0_BIT, 4);
 
 	//enable pll
-	????????
+	SET_BIT(RCC_BASE + RCC_CR_OFFSET, PLLON_BIT);
+
 
 	//wait
-	????????
+	while (READ_BIT(RCC_BASE + RCC_CR_OFFSET, PLLRDY_BIT) != 1)
+		;
 
 	//enable flash prefetch buffer
-	????????
+	SET_BIT(FLASH_BASE + FLASH_ACR_OFFSET, PRFTEN_BIT);
 
 	//set flash wait state = 5
-	????????
+	SET_BIT(FLASH_BASE + FLASH_ACR_OFFSET, LATENCY_2_BIT);
+	SET_BIT(FLASH_BASE + FLASH_ACR_OFFSET, LATENCY_0_BIT);
 
 	//use pll
-	????????
+	SET_BIT(FLASH_BASE + FLASH_ACR_OFFSET, SW_1_BIT);
+	CLEAR_BIT(FLASH_BASE + FLASH_ACR_OFFSET, SW_0_BIT);
 
 	//wait
-	????????
+	while (READ_BIT(FLASH_BASE + FLASH_ACR_OFFSET, SWS_1_BIT) != 1 &&
+		READ_BIT(FLASH_BASE + FLASH_ACR_OFFSET, SWS_0_BIT) != 0)
+		;
 }
