@@ -6,7 +6,7 @@ void op_sysclk(unsigned int div);
 
 int main(void)
 {
-	op_sysclk(1);
+	op_sysclk(4);
 	blink(LED_BLUE);
 }
 
