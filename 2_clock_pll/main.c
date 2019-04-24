@@ -16,10 +16,13 @@ int main(void)
  * 
  */
 void op_sysclk(unsigned int div)
-{ 
-	//RCC set to system clock
+{
+	
+	//RCC
 	CLEAR_BIT(RCC_BASE + RCC_CFGR_OFFSET, MCO2_1_BIT);
 	CLEAR_BIT(RCC_BASE + RCC_CFGR_OFFSET, MCO2_0_BIT);
+
+
 
 	if (div == 1)
 		CLEAR_BIT(RCC_BASE + RCC_CFGR_OFFSET, MCO2PRE_2_BIT);
@@ -33,21 +36,24 @@ void op_sysclk(unsigned int div)
 		while(1)
 			;
 
-	SET_BIT(RCC_BASE + RCC_AHB1ENR_OFFSET, GPIO_EN_BIT(GPIO_PORTC));
+	GPIO_InitDef GPIO_initstructure ;
+    GPIO_initstructure.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_initstructure.GPIO_OType = GPIO_Type_pp;
+	GPIO_initstructure.GPIO_PuPd = GPIO_PuPd_nopull;
+	GPIO_initstructure.GPIO_Speed = GPIO_High_speed;
+	GPIO_init(GPIO_PORTC,GPIO_Pin(9),&GPIO_initstructure);
+
+	//SET_BIT(RCC_BASE + RCC_AHB1ENR_OFFSET, GPIO_EN_BIT(GPIO_PORTC));
 
 	//GPIO MODER
-	SET_BIT(GPIO_BASE(GPIO_PORTC) + GPIOx_MODER_OFFSET, MODERy_1_BIT(MOC2));
-	CLEAR_BIT(GPIO_BASE(GPIO_PORTC) + GPIOx_MODER_OFFSET, MODERy_0_BIT(MOC2));
+
 
 	//Output push-pull
-	CLEAR_BIT(GPIO_BASE(GPIO_PORTC) + GPIOx_OTYPER_OFFSET, OTy_BIT(MOC2));
+	
+	//OSPEEDR9 = 11 => Very high speed
 	
 
-	//OSPEEDR9 = 11 => Very high speed
-	SET_BIT(GPIO_BASE(GPIO_PORTC) + GPIOx_OSPEEDR_OFFSET, OSPEEDRy_1_BIT(MOC2));
-	SET_BIT(GPIO_BASE(GPIO_PORTC) + GPIOx_OSPEEDR_OFFSET, OSPEEDRy_0_BIT(MOC2));
-
 	//PUPDR9 = 00 => No pull-up, pull-down
-	CLEAR_BIT(GPIO_BASE(GPIO_PORTC) + GPIOx_PUPDR_OFFSET, PUPDRy_1_BIT(MOC2));
-	CLEAR_BIT(GPIO_BASE(GPIO_PORTC) + GPIOx_PUPDR_OFFSET, PUPDRy_0_BIT(MOC2));
+
 }
+
